@@ -1,4 +1,5 @@
 import re
+import json
 
 class User:
     def __init__(self, id, first_name, last_name, email):
@@ -14,3 +15,17 @@ class User:
         if re.match(r"[^@]+@[^@]+\.[^@]+", email):
             return True
         return False
+    def add_post(self, post):
+        self.posts.append(post)
+    def get_posts_information(self):
+        return json.dumps({
+            "number": len(self.posts),
+        })
+class Post:
+    def __init__(self, id, author_id, text):
+        self.id = id
+        self.author_id = author_id
+        self.text = text
+        self.reactions = []
+    def add_reaction(self, text):
+        self.reactions.append(text)
