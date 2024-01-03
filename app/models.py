@@ -26,6 +26,14 @@ class User:
         if order == "asc":
             return posts
         return posts[::-1]
+    def user_to_dict(self):
+        return dict({
+            "id": self.user_id,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "email": self.email,
+            "total_reactions": self.total_reactions,
+        })
 
 class Post:
     def __init__(self, post_id, author_id, text):

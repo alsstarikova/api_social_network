@@ -134,3 +134,27 @@ def sorted_posts(user_id):
         mimetype="application/json",
     )
     return response
+@app.get('/users/leaderboard')
+def sorted_users():
+    data = request.get_json()
+    type_of_request = data['type']
+    if type_of_request == "list":
+        order = data['sort']
+        sorted_users = []
+        if order == "asc":
+            sorted_users = sorted(USERS, key=lambda user: user.total_reactions)
+        elif order == "desc":
+            sorted_users = sorted(USERS, key=lambda user: user.total_reactions, reverse=True)
+        else:
+            return Response(status=HTTPStatus.BAD_REQUEST)
+        users = [user.user_to_dict() for user in sorted_users]
+        response = Response(
+            json.dumps(
+                {
+                    "users": users,
+                }
+            ),
+            HTTPStatus.OK,
+            mimetype="application/json",
+        )
+    return response
