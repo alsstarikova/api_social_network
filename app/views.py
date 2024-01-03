@@ -11,18 +11,18 @@ def index():
 @app.post('/user/create')
 def user_create():
     data = request.get_json()
-    id = len(USERS)
+    user_id = len(USERS)
     first_name = data['first_name']
     last_name = data['last_name']
     email = data['email']
 
     if not models.User.is_valid_email(email):
         return Response(status=HTTPStatus.BAD_REQUEST)
-    user = models.User(id, first_name, last_name, email)
+    user = models.User(user_id, first_name, last_name, email)
     USERS.append(user)
     response = Response(
         json.dumps({
-            "id": user.id,
+            "id": user.user_id,
             "first_name": user.first_name,
             "last_name": user.last_name,
             "email": user.email,
@@ -41,7 +41,7 @@ def get_user(user_id):
     user = USERS[user_id]
     response = Response(
         json.dumps({
-            "id": user.id,
+            "id": user.user_id,
             "first_name": user.first_name,
             "last_name": user.last_name,
             "email": user.email,
@@ -59,11 +59,10 @@ def post_create():
     author_id = data["author_id"]
     text = data["text"]
 
-
     if author_id < 0 or author_id >= len(USERS):
         return Response(status=HTTPStatus.NOT_FOUND)
     post_id = len(POSTS)
-    post = models.Post(id, author_id, text)
+    post = models.Post(post_id, author_id, text)
     author = USERS[author_id]
     author.add_post(post)
     POSTS.append(post)
@@ -81,7 +80,7 @@ def post_create():
 
 @app.get('/posts/<int:post_id>')
 def get_post(post_id):
-    if post_id < 0 or post_id >= len(USERS):
+    if post_id < 0 or post_id >= len(POSTS):
         return Response(status=HTTPStatus.NOT_FOUND)
     post = POSTS[post_id]
     response = Response(
@@ -110,6 +109,28 @@ def add_reaction(post_id):
     user.total_reactions += 1
     post.add_reaction(reaction)
 
-    response = Response(HTTPStatus.OK)
+    response = Response(status=HTTPStatus.OK)
     return response
 
+@app.get('/users/<int:user_id>/posts')
+def sorted_posts(user_id):
+    if user_id < 0 or user_id >= len(USERS):
+        return Response(status=HTTPStatus.NOT_FOUND)
+    user = USERS[user_id]
+
+    data = request.get_json()
+    order = data['sort']
+    if not(order=="asc" or order=="desc"):
+        return Response(status=HTTPStatus.BAD_REQUEST)
+    sorted_posts = user.sort_posts(order)
+    posts = [post.post_to_dict() for post in sorted_posts]
+    response = Response(
+        json.dumps(
+            {
+                "posts": posts,
+            }
+        ),
+        HTTPStatus.OK,
+        mimetype="application/json",
+    )
+    return response
