@@ -34,6 +34,8 @@ class User:
             "email": self.email,
             "total_reactions": self.total_reactions,
         })
+    def __lt__(self, other):
+        return self.total_reactions < other.total_reactions
 
 class Post:
     def __init__(self, post_id, author_id, text):

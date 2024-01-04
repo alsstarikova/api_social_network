@@ -1,7 +1,11 @@
 from app import app, USERS, models, POSTS
-from flask import request, Response
+from flask import request, Response, send_file
 import json
 from http import HTTPStatus
+import matplotlib.pyplot as plt
+import matplotlib
+
+matplotlib.use("Agg")
 
 #todo: add try except
 @app.route('/')
@@ -138,6 +142,7 @@ def sorted_posts(user_id):
 def sorted_users():
     data = request.get_json()
     type_of_request = data['type']
+
     if type_of_request == "list":
         order = data['sort']
         sorted_users = []
@@ -157,4 +162,13 @@ def sorted_users():
             HTTPStatus.OK,
             mimetype="application/json",
         )
-    return response
+        return response
+    elif type_of_request == "graph":
+        sorted_users = sorted(USERS, key=lambda user: user.total_reactions)
+        user_names = [f'{user.first_name} {user.last_name}' for user in sorted_users]
+        user_scores = [user.total_reactions for user in sorted_users]
+        plt.bar(user_names, user_scores)
+        plt.ylabel('User total reactions')
+        plt.title('User leaderboard by amount of reactions')
+        plt.savefig("app/users_leaderboard.png")
+        return send_file("users_leaderboard.png")
